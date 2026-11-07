@@ -1,0 +1,23 @@
+name: New method
+description: Propose a method, test or metric to add.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Method
+      description: What it does and who uses it (validation, calibration, low-default portfolios, ...).
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Public source
+      description: Paper, regulation or guideline that defines it. Confidential or vendor material cannot be used.
+    validations:
+      required: true
+  - type: textarea
+    id: check
+    attributes:
+      label: How to test it
+      description: A closed form, a published worked example, or another way to check the result independently.
