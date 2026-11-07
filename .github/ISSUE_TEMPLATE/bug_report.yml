@@ -1,0 +1,29 @@
+name: Bug report
+description: A function gives a wrong result, fails, or behaves unexpectedly.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal example
+      description: Short code with synthetic numbers that shows the problem. Do not paste real data.
+      render: python
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versions
+      description: eqlx-credit, Python, NumPy and SciPy versions.
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference value
+      description: If you believe the correct answer is different, where does it come from (paper, worked example, other software)?

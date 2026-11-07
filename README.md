@@ -104,6 +104,10 @@ uv run pytest
 uv run ruff check . && uv run ruff format --check . && uv run mypy src
 ```
 
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
