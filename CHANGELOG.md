@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Agent skill `skills/annual-pd-validation`: SKILL.md, a runner script that executes every test on one JSON
+  input and reports results to 4 decimals with the function behind each, and a synthetic example portfolio.
+
 ## 0.2.0
 
 Added
