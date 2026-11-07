@@ -35,12 +35,19 @@ class MasterScale:
     def n_grades(self) -> int:
         return int(self.midpoints.size)
 
+    @property
+    def default_grade(self) -> int:
+        """The grade number given to defaulted obligors (PD = 1): one past the last performing grade."""
+        return self.n_grades + 1
+
     def grade(self, pd: ArrayLike) -> NDArray[np.int64]:
-        """Grade number (1-based) for each PD. A PD equal to a boundary goes to the
-        riskier grade."""
+        """Grade number (1-based) for each PD. A PD equal to a boundary goes to the riskier grade; a PD of
+        1 (default) goes to :attr:`default_grade`, never to a performing grade."""
         p = as_pd("pd", pd, open_interval=False)
         idx = np.searchsorted(self.upper_bounds[:-1], p, side="right")
-        return (idx + 1).astype(np.int64)
+        out = (idx + 1).astype(np.int64)
+        out[p >= 1.0] = self.default_grade
+        return out
 
     def table(self) -> list[dict[str, float]]:
         """Rows of grade, lower bound, midpoint and upper bound, for printing."""

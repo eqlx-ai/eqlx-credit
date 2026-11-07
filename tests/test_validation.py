@@ -81,10 +81,16 @@ def test_psi():
     e, a = np.array([0.5, 0.5]), np.array([0.25, 0.75])
     expected = float(np.sum((a - e) * np.log(a / e)))
     assert psi(e, a) == pytest.approx(expected)
-    assert psi([1, 1], [1, 0]) > 1.0  # an emptied grade is a large shift, not an error
+    with pytest.warns(UserWarning, match="floored"):
+        assert psi([1, 1], [1, 0]) > 1.0  # an emptied grade is a large shift, not an error
 
 
 def test_hhi():
     assert hhi([10, 10, 10, 10]) == pytest.approx(0.0)
     assert hhi([0, 40, 0, 0]) == pytest.approx(1.0)
     assert hhi([1, 1], normalized=False) == pytest.approx(0.5)
+
+
+def test_exposure_weighted_hhi():
+    assert hhi([10, 10], exposure=[100, 0]) == pytest.approx(1.0)
+    assert hhi([1, 99], exposure=[50, 50]) == pytest.approx(0.0)
