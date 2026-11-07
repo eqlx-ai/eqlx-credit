@@ -1,0 +1,26 @@
+{
+  "portfolio": "Synthetic corporate portfolio (made-up numbers)",
+  "observation_period": "2025-01-01 to 2025-12-31",
+  "grades": [
+    {"grade": "1", "obligors": 820, "defaults": 1, "pd": 0.0012},
+    {"grade": "2", "obligors": 1450, "defaults": 4, "pd": 0.0035},
+    {"grade": "3", "obligors": 1910, "defaults": 11, "pd": 0.0070},
+    {"grade": "4", "obligors": 1320, "defaults": 19, "pd": 0.0140},
+    {"grade": "5", "obligors": 640, "defaults": 34, "pd": 0.0300},
+    {"grade": "6", "obligors": 210, "defaults": 12, "pd": 0.0700}
+  ],
+  "initial_validation_auc": 0.86,
+  "previous_obligors": [900, 1500, 1850, 1250, 560, 190],
+  "history": {
+    "years": ["2021", "2022", "2023", "2024", "2025"],
+    "default_rates": [0.0105, 0.0120, 0.0098, 0.0141, 0.0128],
+    "pds": [0.0110, 0.0110, 0.0110, 0.0110, 0.0110]
+  },
+  "policy": {
+    "alpha": 0.05,
+    "asset_correlation": 0.12,
+    "traffic_light_thresholds": [0.95, 0.999],
+    "psi_watch": 0.10,
+    "psi_material": 0.25
+  }
+}

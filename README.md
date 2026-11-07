@@ -45,6 +45,14 @@ Conventions: grades run from lowest to highest risk; by default a higher score m
 (`higher_is_riskier=False` for scorecards where a high score is safe); `1` in a default flag means
 default; a PD of 1 maps to the master scale's defaulted grade, never to a performing grade.
 
+## Agent skill: annual PD validation
+
+[`skills/annual-pd-validation`](skills/annual-pd-validation) is an Agent Skill that lets an AI agent prepare the
+evidence for an annual PD validation: it runs every test through eqlx-credit, reads the results, and drafts the
+report in the user's language. The agent never computes a number itself and never gives the validation opinion; the
+conclusion and signature stay with the validator. On the bundled synthetic portfolio it finds the planted problems:
+a significant AUC decline since initial validation and one grade with far more defaults than its PD implies.
+
 ## An annual validation pass
 
 [`examples/validation_report.py`](examples/validation_report.py), on a synthetic grade table:
