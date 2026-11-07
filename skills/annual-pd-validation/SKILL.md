@@ -39,7 +39,7 @@ parts are present) and confirm it is the right portfolio and period.
 ### 2. Run the tool
 
 ```bash
-uv run --with "eqlx-credit @ git+https://github.com/eqlx-ai/eqlx-credit" \
+uv run --with eqlx-credit \
   python scripts/run_validation.py <input.json> --out results.json
 ```
 
