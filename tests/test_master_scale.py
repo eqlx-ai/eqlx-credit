@@ -19,20 +19,12 @@ def test_geometric_grid():
 def test_grade_assignment():
     scale = master_scale_from_midpoints([0.01, 0.04, 0.16])
     # boundaries: sqrt(0.01*0.04)=0.02, sqrt(0.04*0.16)=0.08
-    assert list(scale.grade([0.0, 0.01, 0.0199, 0.02, 0.05, 0.08, 0.5, 1.0])) == [
-        1,
-        1,
-        1,
-        2,
-        2,
-        3,
-        3,
-        3,
-    ]
+    assert list(scale.grade([0.0, 0.01, 0.0199, 0.02, 0.05, 0.08, 0.5, 0.999])) == [1, 1, 1, 2, 2, 3, 3, 3]
+    # a defaulted obligor never lands in a performing grade
+    assert scale.default_grade == 4
+    assert list(scale.grade([1.0, 0.5])) == [4, 3]
     assert list(scale.grade(scale.midpoints)) == [1, 2, 3]
-    assert scale.table()[1] == pytest.approx(
-        {"grade": 2, "lower": 0.02, "midpoint": 0.04, "upper": 0.08}
-    )
+    assert scale.table()[1] == pytest.approx({"grade": 2, "lower": 0.02, "midpoint": 0.04, "upper": 0.08})
 
 
 def test_bad_inputs():

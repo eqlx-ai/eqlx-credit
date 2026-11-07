@@ -7,17 +7,21 @@ A score model ranks obligors; calibration decides how high their PDs are. Two to
   (the *central tendency*, e.g. a long-run average default rate).
 * :func:`fit_ct_ar` builds a whole PD curve over rating grades from two targets only:
   the central tendency and the accuracy ratio (AR) the model should have. It follows
-  the idea of Tasche's quasi-moment-matching (QMM) approach, a two-parameter logistic
-  PD curve, but matches the AR exactly on the discrete grade distribution instead of
-  through a moment approximation.
+  Tasche's quasi-moment-matching (QMM) approach: a two-parameter logistic PD curve on
+  the "robust logit" grade positions, Phi^-1 of each grade's mid cumulative share. It
+  matches the AR exactly on the discrete grade distribution rather than through QMM's
+  moment approximation.
+* :func:`apply_pd_floor` raises PDs to a regulatory floor.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
+from scipy import stats
 from scipy.optimize import brentq
 from scipy.special import expit, logit
 
@@ -73,19 +77,50 @@ def accuracy_ratio_from_grades(pd: ArrayLike, weights: ArrayLike) -> float:
     return 2.0 * area - 1.0
 
 
+def apply_pd_floor(pd: ArrayLike, floor: float = 0.0003) -> NDArray[np.float64]:
+    """Raise PDs below ``floor`` to it. 0.0003 (3 bp) is the Basel II / CRR floor; Basel III final uses
+    0.0005 for most exposure classes and 0.001 for revolving retail (QRRE revolvers)."""
+    p = as_pd("pd", pd, open_interval=False)
+    if not 0.0 <= floor < 1.0:
+        raise ValueError("floor must lie in [0, 1)")
+    return np.maximum(p, floor)
+
+
 @dataclass(frozen=True)
 class CurveFit:
-    """Logistic PD curve ``PD_i = expit(intercept + slope * x_i)`` over grades, where
-    ``x_i`` runs evenly from 0 (lowest-risk grade) to 1 (highest-risk grade)."""
+    """Logistic PD curve ``PD_i = expit(intercept + slope * x_i)`` over grades, with ``x_i`` the
+    grade positions used (see ``placement`` in :func:`fit_ct_ar`)."""
 
     pd: NDArray[np.float64]
     intercept: float
     slope: float
     central_tendency: float
     accuracy_ratio: float
+    positions: NDArray[np.float64] | None = None
 
 
-def fit_ct_ar(weights: ArrayLike, central_tendency: float, accuracy_ratio: float) -> CurveFit:
+def grade_positions(weights: ArrayLike, placement: Literal["qmm", "even"] = "qmm") -> NDArray[np.float64]:
+    """Positions of the grades on the score axis, lowest risk first.
+
+    ``"qmm"``: ``Phi^-1`` of the cumulative share of obligors at each grade's midpoint (Tasche's robust
+    logit), so a grade holding many obligors spans more of the axis than a thin one. ``"even"``: evenly
+    from 0 to 1, ignoring the distribution (the v0.1 behaviour).
+    """
+    w = _weights(weights, np.asarray(weights).size)
+    if placement == "even":
+        return np.linspace(0.0, 1.0, w.size)
+    if placement == "qmm":
+        mid = np.cumsum(w) - w / 2.0
+        return np.asarray(stats.norm.ppf(mid), dtype=float)
+    raise ValueError("placement must be 'qmm' or 'even'")
+
+
+def fit_ct_ar(
+    weights: ArrayLike,
+    central_tendency: float,
+    accuracy_ratio: float,
+    placement: Literal["qmm", "even"] = "qmm",
+) -> CurveFit:
     """Fit grade PDs to a target central tendency and accuracy ratio.
 
     ``weights`` is the number (or share) of obligors per grade, lowest risk first.
@@ -93,16 +128,14 @@ def fit_ct_ar(weights: ArrayLike, central_tendency: float, accuracy_ratio: float
     from the target AR, the level from the central tendency.
     """
     w = _weights(weights, np.asarray(weights).size)
-    if w.size < 2:
-        raise ValueError("need at least two grades")
+    if w.size < 2 or np.any(w <= 0):
+        raise ValueError("need at least two grades, each with obligors")
     ct = probability("central_tendency", central_tendency)
     target_ar = probability("accuracy_ratio", accuracy_ratio)
-    x = np.linspace(0.0, 1.0, w.size)
+    x = grade_positions(w, placement)
 
     def intercept_for(slope: float) -> float:
-        return float(
-            brentq(lambda a: float(np.dot(w, expit(a + slope * x)) - ct), -80.0, 80.0, xtol=1e-14)
-        )
+        return float(brentq(lambda a: float(np.dot(w, expit(a + slope * x)) - ct), -80.0, 80.0, xtol=1e-14))
 
     def ar_for(slope: float) -> float:
         return accuracy_ratio_from_grades(expit(intercept_for(slope) + slope * x), w)
@@ -111,9 +144,7 @@ def fit_ct_ar(weights: ArrayLike, central_tendency: float, accuracy_ratio: float
     while ar_for(slope_hi) < target_ar:
         slope_hi *= 2.0
         if slope_hi > 200.0:
-            raise ValueError(
-                f"accuracy ratio {target_ar} is not reachable with this grade distribution"
-            )
+            raise ValueError(f"accuracy ratio {target_ar} is not reachable with this grade distribution")
     slope = brentq(lambda b: ar_for(b) - target_ar, 0.0, slope_hi, xtol=1e-12)
     intercept = intercept_for(slope)
     pd = np.asarray(expit(intercept + slope * x), dtype=float)
@@ -123,4 +154,5 @@ def fit_ct_ar(weights: ArrayLike, central_tendency: float, accuracy_ratio: float
         slope=float(slope),
         central_tendency=float(np.dot(w, pd)),
         accuracy_ratio=accuracy_ratio_from_grades(pd, w),
+        positions=x,
     )

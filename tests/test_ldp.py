@@ -10,9 +10,7 @@ def test_pluto_tasche_paper_example_independence():
     # Pluto & Tasche (2005), three grades with 100/400/300 obligors and no defaults,
     # 90% confidence: 0.29%, 0.33%, 0.76%.
     bounds = pluto_tasche([100, 400, 300], [0, 0, 0], confidence=0.9)
-    assert bounds == pytest.approx(
-        [1 - 0.1 ** (1 / 800), 1 - 0.1 ** (1 / 700), 1 - 0.1 ** (1 / 300)]
-    )
+    assert bounds == pytest.approx([1 - 0.1 ** (1 / 800), 1 - 0.1 ** (1 / 700), 1 - 0.1 ** (1 / 300)])
     assert np.round(bounds * 100, 2) == pytest.approx([0.29, 0.33, 0.76])
 
 
@@ -24,9 +22,7 @@ def test_pluto_tasche_with_defaults_is_clopper_pearson_on_pooled_counts():
 
 
 def test_vasicek_cdf_reduces_to_binomial_without_correlation():
-    assert _vasicek_cdf(3, 500, 0.01, 1e-9, 64) == pytest.approx(
-        stats.binom.cdf(3, 500, 0.01), rel=1e-6
-    )
+    assert _vasicek_cdf(3, 500, 0.01, 1e-9, 64) == pytest.approx(stats.binom.cdf(3, 500, 0.01), rel=1e-6)
 
 
 def test_correlation_makes_bounds_more_prudent():

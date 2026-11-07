@@ -21,6 +21,7 @@ from scipy import stats
 from scipy.optimize import brentq
 
 from ._checks import as_1d, obligors_and_defaults, probability
+from ._vasicek import vasicek_cdf
 
 
 def _pooled_counts(
@@ -32,10 +33,7 @@ def _pooled_counts(
 
 def _vasicek_cdf(defaults: float, obligors: float, pd: float, rho: float, nodes: int) -> float:
     """P(X <= defaults) when defaults follow the one-factor Vasicek model."""
-    x, w = np.polynomial.hermite_e.hermegauss(nodes)
-    w = w / np.sqrt(2.0 * np.pi)
-    cond = stats.norm.cdf((stats.norm.ppf(pd) - np.sqrt(rho) * x) / np.sqrt(1.0 - rho))
-    return float(np.dot(w, stats.binom.cdf(defaults, obligors, cond)))
+    return vasicek_cdf(defaults, obligors, pd, rho, nodes)
 
 
 def pluto_tasche(
@@ -100,9 +98,7 @@ class VanDerBurgtFit:
     accuracy_ratio: float
 
 
-def van_der_burgt(
-    weights: ArrayLike, central_tendency: float, accuracy_ratio: float
-) -> VanDerBurgtFit:
+def van_der_burgt(weights: ArrayLike, central_tendency: float, accuracy_ratio: float) -> VanDerBurgtFit:
     """Grade PDs from a fitted CAP curve (van der Burgt, 2008).
 
     ``weights`` is the number (or share) of obligors per grade, lowest risk first.

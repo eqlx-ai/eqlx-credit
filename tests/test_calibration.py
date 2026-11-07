@@ -45,3 +45,27 @@ def test_fit_ct_ar_recovers_targets():
 def test_fit_ct_ar_unreachable():
     with pytest.raises(ValueError):
         fit_ct_ar([50, 50], central_tendency=0.02, accuracy_ratio=0.99)
+
+
+def test_qmm_positions_follow_the_grade_distribution():
+    from scipy import stats
+
+    from eqlx_credit import grade_positions
+
+    w = np.array([10, 30, 40, 20])
+    x = grade_positions(w)
+    mid = np.cumsum(w / w.sum()) - w / w.sum() / 2
+    assert x == pytest.approx(stats.norm.ppf(mid))
+    assert grade_positions(w, "even") == pytest.approx([0, 1 / 3, 2 / 3, 1])
+    # the fitted curve still hits both targets either way
+    for placement in ("qmm", "even"):
+        fit = fit_ct_ar(w, 0.02, 0.6, placement=placement)
+        assert fit.central_tendency == pytest.approx(0.02, abs=1e-10)
+        assert fit.accuracy_ratio == pytest.approx(0.6, abs=1e-8)
+
+
+def test_pd_floor():
+    from eqlx_credit import apply_pd_floor
+
+    assert apply_pd_floor([0.0001, 0.01]) == pytest.approx([0.0003, 0.01])
+    assert apply_pd_floor([0.0001], floor=0.0005) == pytest.approx([0.0005])
