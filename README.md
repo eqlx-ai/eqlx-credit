@@ -1,5 +1,7 @@
 # eqlx-credit
 
+[![PyPI](https://img.shields.io/pypi/v/eqlx-credit)](https://pypi.org/project/eqlx-credit/) [![CI](https://github.com/eqlx-ai/eqlx-credit/actions/workflows/ci.yml/badge.svg)](https://github.com/eqlx-ai/eqlx-credit/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 Open tools for credit-risk model work: discriminatory power with confidence intervals, PD back-testing
 that allows for correlated defaults, cohort default rates, calibration, master scales, low-default
 portfolio methods and the Basel IRB risk-weight functions.
@@ -13,7 +15,7 @@ Built by [eqlx](https://eqlx.ai) from public regulation and published research. 
 ## Install
 
 ```bash
-pip install git+https://github.com/eqlx-ai/eqlx-credit
+pip install eqlx-credit
 ```
 
 Python 3.10+, depends only on NumPy and SciPy.
